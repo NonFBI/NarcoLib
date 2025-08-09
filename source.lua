@@ -1,4 +1,3 @@
-```lua
 -- Load Narco UI Library
 local UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/NonFBI/NarcoLib/refs/heads/main/source.lua"))()
 
@@ -82,4 +81,3 @@ ExampleTab:CreateButton({
         UI:LoadSettings("NarcoSettings.json")
     end
 })
-```
