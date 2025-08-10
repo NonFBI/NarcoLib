@@ -940,11 +940,11 @@ function NarcoEx:Window(Settings)
 	globalSettings.Parent = base
 	base.Parent = narcoEx
 
-	function WindowFunctions:UpdateTitle(New <string>)
+	function WindowFunctions:UpdateTitle(New: string)
 		title.Text = New
 	end
 
-	function WindowFunctions:UpdateSubtitle(New <string>)
+	function WindowFunctions:UpdateSubtitle(New: string)
 		subtitle.Text = New
 	end
 
@@ -1208,7 +1208,7 @@ function NarcoEx:Window(Settings)
 
 	RunService.RenderStepped:Connect(UpdateOrientation)
 
-	function WindowFunctions:GlobalSetting(Settings <table: Name <string>, Default <boolean>, Callback <function(boolean): void>>)
+function WindowFunctions:GlobalSetting(Settings: { Name: string, Default: boolean, Callback: (boolean) -> () })
 		hasGlobalSetting = true
 		local GlobalSettingFunctions = {}
 		local globalSetting = Instance.new("TextButton")
@@ -1301,7 +1301,7 @@ function NarcoEx:Window(Settings)
 	function WindowFunctions:TabGroup()
 		local TabGroupFunctions = {}
 
-		function TabGroupFunctions:Tab(Settings <table: Name <string>, Image <string>>)
+		function TabGroupFunctions:Tab(Settings: { Name: string, Image: string })
 			local TabFunctions = {Settings = Settings}
 			tabIndex += 1
 			local index = tabIndex
@@ -1383,7 +1383,7 @@ function NarcoEx:Window(Settings)
 			elements1UIPadding.PaddingRight = UDim.new(0, 20)
 			elements1UIPadding.Parent = elements1
 
-			function TabFunctions:Section(Settings <table: Side <string: "Left", "Right">>)
+			function TabFunctions:Section(Settings: { Side: string })
 				local SectionFunctions = {}
 				local side = Settings.Side == "Right" and 1 or 0
 
@@ -1416,7 +1416,7 @@ function NarcoEx:Window(Settings)
 				sectionUIPadding.PaddingTop = UDim.new(0, 15)
 				sectionUIPadding.Parent = section
 
-				function SectionFunctions:Button(Settings <table: Name <string>, Callback <function(): void>>)
+				function SectionFunctions:Button(Settings: { Name: string, Callback: () -> () })
 					local ButtonFunctions = {Settings = Settings}
 
 					local button = Instance.new("TextButton")
@@ -1481,17 +1481,17 @@ function NarcoEx:Window(Settings)
 						ChangeState("Idle")
 					end)
 
-					function ButtonFunctions:UpdateName(New <string>)
+					function ButtonFunctions:UpdateName(New: string)
 						button.Text = New
 					end
-					function ButtonFunctions:SetVisibility(State <boolean>)
+					function ButtonFunctions:SetVisibility(State: boolean)
 						button.Visible = State
 					end
 
 					return ButtonFunctions
 				end
 
-				function SectionFunctions:Toggle(Settings <table: Name <string>, Default <boolean>, Callback <function(boolean): void>>, Flag <string>)
+				function SectionFunctions:Toggle(Settings: { Name: string, Default: boolean, Callback: (boolean) -> () }, Flag: string)
 					local ToggleFunctions = {Settings = Settings, Class = "Toggle", State = Settings.Default or false}
 
 					local toggle = Instance.new("Frame")
@@ -1576,10 +1576,10 @@ function NarcoEx:Window(Settings)
 
 					toggleButton.MouseButton1Click:Connect(Toggle)
 
-					function ToggleFunctions:UpdateName(New <string>)
+					function ToggleFunctions:UpdateName(New: string)
 						toggleName.Text = New
 					end
-					function ToggleFunctions:UpdateState(State <boolean>)
+					function ToggleFunctions:UpdateState(State: boolean)
 						ToggleFunctions.State = State
 						Tween(togglerHead, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {
 							Position = UDim2.fromOffset(State and 12 or 2, 2)
@@ -1588,7 +1588,7 @@ function NarcoEx:Window(Settings)
 							Settings.Callback(State)
 						end
 					end
-					function ToggleFunctions:SetVisibility(State <boolean>)
+					function ToggleFunctions:SetVisibility(State: boolean)
 						toggle.Visible = State
 					end
 
@@ -1598,7 +1598,7 @@ function NarcoEx:Window(Settings)
 					return ToggleFunctions
 				end
 
-				function SectionFunctions:Slider(Settings <table: Name <string>, Default <number>, Minimum <number>, Maximum <number>, DisplayMethod <string: "Number", "Percent">, Precision <number>, Callback <function(number): void>>, Flag <string>)
+				function SectionFunctions:Slider(Settings: { Name: string, Default: number, Minimum: number, Maximum: number, DisplayMethod: string, Precision: number, Callback: (number) -> () }, Flag: string)
 					local SliderFunctions = {Settings = Settings, Class = "Slider", Value = Settings.Default or Settings.Minimum}
 
 local slider = Instance.new("Frame")
@@ -1721,7 +1721,7 @@ UserInputService.InputChanged:Connect(function(input)
 	end
 end)
 
-function SliderFunctions:UpdateValue(New <number>)
+function SliderFunctions:UpdateValue(New: number)
 	SliderFunctions.Value = math.clamp(New, Settings.Minimum, Settings.Maximum)
 	sliderValue.Text = tostring(SliderFunctions.Value)
 	sliderFill.Size = UDim2.new((SliderFunctions.Value - Settings.Minimum) / (Settings.Maximum - Settings.Minimum), 0, 1, 0)
@@ -1729,7 +1729,7 @@ function SliderFunctions:UpdateValue(New <number>)
 		Settings.Callback(SliderFunctions.Value)
 	end
 end
-function SliderFunctions:SetVisibility(State <boolean>)
+function SliderFunctions:SetVisibility(State: boolean)
 	slider.Visible = State
 end
 
@@ -1739,7 +1739,7 @@ end
 return SliderFunctions
 end
 
-function SectionFunctions:Input(Settings <table: Name <string>, Placeholder <string>, AcceptedCharacters <string: "All", "Numbers", "Letters">, Callback <function(string): void>, onChanged <function(string): void>>, Flag <string>)
+function SectionFunctions:Input(Settings: { Name: string, Placeholder: string, AcceptedCharacters: string, Callback: (string) -> (), onChanged: (string) -> () }, Flag: string)
 	local InputFunctions = {Settings = Settings, Class = "Input", Text = ""}
 
 	local input = Instance.new("Frame")
@@ -1801,14 +1801,14 @@ function SectionFunctions:Input(Settings <table: Name <string>, Placeholder <str
 		end
 	end)
 
-	function InputFunctions:UpdateText(New <string>)
+	function InputFunctions:UpdateText(New: string)
 		inputTextBox.Text = New
 		InputFunctions.Text = New
 		if Settings.Callback then
 			Settings.Callback(New)
 		end
 	end
-	function InputFunctions:SetVisibility(State <boolean>)
+	function InputFunctions:SetVisibility(State: boolean)
 		input.Visible = State
 	end
 
@@ -1818,7 +1818,7 @@ function SectionFunctions:Input(Settings <table: Name <string>, Placeholder <str
 	return InputFunctions
 end
 
-function SectionFunctions:Keybind(Settings <table: Name <string>, Blacklist <boolean or table>, Callback <function(Enum.KeyCode): void>, onBinded <function(Enum.KeyCode): void>>, Flag <string>)
+function SectionFunctions:Keybind(Settings: { Name: string, Blacklist: boolean | table, Callback: (Enum.KeyCode) -> (), onBinded: (Enum.KeyCode) -> () }, Flag: string)
 	local KeybindFunctions = {Settings = Settings, Class = "Keybind", Bind = nil}
 
 	local keybind = Instance.new("Frame")
@@ -1899,14 +1899,14 @@ function SectionFunctions:Keybind(Settings <table: Name <string>, Blacklist <boo
 		end
 	end)
 
-	function KeybindFunctions:Bind(New <Enum.KeyCode>)
+	function KeybindFunctions:Bind(New: Enum.KeyCode)
 		KeybindFunctions.Bind = New
 		keybindValue.Text = New.Name
 		if Settings.onBinded then
 			Settings.onBinded(New)
 		end
 	end
-	function KeybindFunctions:SetVisibility(State <boolean>)
+	function KeybindFunctions:SetVisibility(State: boolean)
 		keybind.Visible = State
 	end
 
@@ -1916,7 +1916,7 @@ function SectionFunctions:Keybind(Settings <table: Name <string>, Blacklist <boo
 	return KeybindFunctions
 end
 
-function SectionFunctions:Colorpicker(Settings <table: Name <string>, Default <Color3>, Alpha <number>, Callback <function(Color3, number): void>>, Flag <string>)
+function SectionFunctions:Colorpicker(Settings: { Name: string, Default: Color3, Alpha: number, Callback: (Color3, number) -> () }, Flag: string)
 	local ColorpickerFunctions = {Settings = Settings, Class = "Colorpicker", Color = Settings.Default or Color3.fromRGB(255, 255, 255), Alpha = Settings.Alpha or 1}
 
 	local colorpicker = Instance.new("Frame")
@@ -1993,21 +1993,21 @@ function SectionFunctions:Colorpicker(Settings <table: Name <string>, Default <C
 		pickerFrame.Visible = not pickerFrame.Visible
 	end)
 
-	function ColorpickerFunctions:SetColor(New <Color3>)
+	function ColorpickerFunctions:SetColor(New: Color3)
 		ColorpickerFunctions.Color = New
 		colorpickerPreview.BackgroundColor3 = New
 		if Settings.Callback then
 			Settings.Callback(New, ColorpickerFunctions.Alpha)
 		end
 	end
-	function ColorpickerFunctions:SetAlpha(New <number>)
+	function ColorpickerFunctions:SetAlpha(New: number)
 		ColorpickerFunctions.Alpha = New
 		colorpickerPreview.BackgroundTransparency = 1 - New
 		if Settings.Callback then
 			Settings.Callback(ColorpickerFunctions.Color, New)
 		end
 	end
-	function ColorpickerFunctions:SetVisibility(State <boolean>)
+	function ColorpickerFunctions:SetVisibility(State: boolean)
 		colorpicker.Visible = State
 	end
 
@@ -2017,7 +2017,7 @@ function SectionFunctions:Colorpicker(Settings <table: Name <string>, Default <C
 	return ColorpickerFunctions
 end
 
-function SectionFunctions:Dropdown(Settings <table: Name <string>, Multi <boolean>, Required <boolean>, Options <table>, Default <string or table>, Callback <function(string or table): void>>, Flag <string>)
+function SectionFunctions:Dropdown(Settings: { Name: string, Multi: boolean, Required: boolean, Options: table, Default: string | table, Callback: (string | table) -> () }, Flag: string)
 	local DropdownFunctions = {Settings = Settings, Class = "Dropdown", Value = Settings.Default}
 
 	local dropdown = Instance.new("Frame")
@@ -2095,7 +2095,7 @@ function SectionFunctions:Dropdown(Settings <table: Name <string>, Multi <boolea
 		end
 	end
 
-	function DropdownFunctions:InsertOptions(Options <table>)
+	function DropdownFunctions:InsertOptions(Options: table)
 		for _, option in ipairs(Options) do
 			local optionButton = Instance.new("TextButton")
 			optionButton.Name = option
@@ -2139,13 +2139,13 @@ function SectionFunctions:Dropdown(Settings <table: Name <string>, Multi <boolea
 		dropdownList.Visible = not dropdownList.Visible
 	end)
 
-	function DropdownFunctions:UpdateSelection(New <string or table>)
+	function DropdownFunctions:UpdateSelection(New: string | table)
 		DropdownFunctions.Value = New
 		if Settings.Callback then
 			Settings.Callback(New)
 		end
 	end
-	function DropdownFunctions:SetVisibility(State <boolean>)
+	function DropdownFunctions:SetVisibility(State: boolean)
 		dropdown.Visible = State
 	end
 
@@ -2155,7 +2155,7 @@ function SectionFunctions:Dropdown(Settings <table: Name <string>, Multi <boolea
 	return DropdownFunctions
 end
 
-function SectionFunctions:Header(Settings <table: Name <string>>)
+function SectionFunctions:Header(Settings: { Name: string })
 	local HeaderFunctions = {Settings = Settings}
 
 	local header = Instance.new("TextLabel")
@@ -2183,17 +2183,17 @@ function SectionFunctions:Header(Settings <table: Name <string>>)
 	})
 	headerUIGradient.Parent = header
 
-	function HeaderFunctions:UpdateName(New <string>)
+	function HeaderFunctions:UpdateName(New: string)
 		header.Text = New
 	end
-	function HeaderFunctions:SetVisibility(State <boolean>)
+	function HeaderFunctions:SetVisibility(State: boolean)
 		header.Visible = State
 	end
 
 	return HeaderFunctions
 end
 
-function SectionFunctions:Label(Settings <table: Text <string>>, Flag <string>)
+function SectionFunctions:Label(Settings: { Text: string }, Flag: string)
 	local LabelFunctions = {Settings = Settings}
 
 	local label = Instance.new("TextLabel")
@@ -2222,10 +2222,10 @@ function SectionFunctions:Label(Settings <table: Text <string>>, Flag <string>)
 	})
 	labelUIGradient.Parent = label
 
-	function LabelFunctions:UpdateName(New <string>)
+	function LabelFunctions:UpdateName(New: string)
 		label.Text = New
 	end
-	function LabelFunctions:SetVisibility(State <boolean>)
+	function LabelFunctions:SetVisibility(State: boolean)
 		label.Visible = State
 	end
 
@@ -2235,7 +2235,7 @@ function SectionFunctions:Label(Settings <table: Text <string>>, Flag <string>)
 	return LabelFunctions
 end
 
-function SectionFunctions:SubLabel(Settings <table: Text <string>>, Flag <string>)
+function SectionFunctions:SubLabel(Settings: { Text: string }, Flag: string)
 	local SubLabelFunctions = {Settings = Settings}
 
 	local subLabel = Instance.new("Frame")
@@ -2274,10 +2274,10 @@ function SectionFunctions:SubLabel(Settings <table: Text <string>>, Flag <string
 	})
 	subLabelTextUIGradient.Parent = subLabelText
 
-	function SubLabelFunctions:UpdateName(New <string>)
+	function SubLabelFunctions:UpdateName(New: string)
 		subLabelText.Text = New
 	end
-	function SubLabelFunctions:SetVisibility(State <boolean>)
+	function SubLabelFunctions:SetVisibility(State: boolean)
 		subLabel.Visible = State
 	end
 
@@ -2287,7 +2287,7 @@ function SectionFunctions:SubLabel(Settings <table: Text <string>>, Flag <string
 	return SubLabelFunctions
 end
 
-function SectionFunctions:Paragraph(Settings <table: Header <string>, Body <string>>, Flag <string>)
+function SectionFunctions:Paragraph(Settings: { Header: string, Body: string }, Flag: string)
 	local ParagraphFunctions = {Settings = Settings}
 
 	local paragraph = Instance.new("Frame")
@@ -2363,13 +2363,13 @@ function SectionFunctions:Paragraph(Settings <table: Header <string>, Body <stri
 	})
 	paragraphBodyUIGradient.Parent = paragraphBody
 
-	function ParagraphFunctions:UpdateHeader(New <string>)
+	function ParagraphFunctions:UpdateHeader(New: string)
 		paragraphHeader.Text = New
 	end
-	function ParagraphFunctions:UpdateBody(New <string>)
+	function ParagraphFunctions:UpdateBody(New: string)
 		paragraphBody.Text = New
 	end
-	function ParagraphFunctions:SetVisibility(State <boolean>)
+	function ParagraphFunctions:SetVisibility(State: boolean)
 		paragraph.Visible = State
 	end
 
@@ -2425,7 +2425,7 @@ function SectionFunctions:Divider()
 	function DividerFunctions:Remove()
 		divider:Destroy()
 	end
-	function DividerFunctions:SetVisibility(State <boolean>)
+	function DividerFunctions:SetVisibility(State: boolean)
 		divider.Visible = State
 	end
 
@@ -2449,7 +2449,7 @@ function SectionFunctions:Spacer()
 	function SpacerFunctions:Remove()
 		spacer:Destroy()
 	end
-	function SpacerFunctions:SetVisibility(State <boolean>)
+	function SpacerFunctions:SetVisibility(State: boolean)
 		spacer.Visible = State
 	end
 
@@ -2501,7 +2501,7 @@ function TabFunctions:Select()
 	SelectCurrentTab()
 end
 
-function TabFunctions:InsertConfigSection(Side <string>)
+function TabFunctions:InsertConfigSection(Side: string)
 	local configSection = TabFunctions:Section({ Side = Side or "Left" })
 
 	if isStudio then
@@ -2573,8 +2573,8 @@ function TabFunctions:InsertConfigSection(Side <string>)
 			end
 
 			WindowFunctions:Notify({
-				Title = "Interface",
-				Description = string.format("Loaded config %q", configSelection.Value),
+					Title = "Interface",
+					Description = string.format("Loaded config %q", configSelection.Value),
 			})
 		end,
 	})
@@ -2642,7 +2642,7 @@ end
 return TabGroupFunctions
 end
 
-function WindowFunctions:Notify(Settings <table: Title <string>, Description <string>, Style <string: "None", "Confirm", "Cancel">, Lifetime <number>, Callback <function(): void>, SizeX <number>, Scale <number>>)
+function WindowFunctions:Notify(Settings: { Title: string, Description: string, Style: string, Lifetime: number, Callback: () -> (), SizeX: number, Scale: number })
 	local NotificationFunctions = {}
 
 	local notification = Instance.new("Frame")
@@ -2829,15 +2829,15 @@ function WindowFunctions:Notify(Settings <table: Title <string>, Description <st
 		end
 	end)
 
-	function NotificationFunctions:UpdateTitle(New <string>)
+	function NotificationFunctions:UpdateTitle(New: string)
 		notificationTitle.Text = New
 	end
 
-	function NotificationFunctions:UpdateDescription(New <string>)
+	function NotificationFunctions:UpdateDescription(New: string)
 		notificationDescription.Text = New
 	end
 
-	function NotificationFunctions:Resize(X <number>)
+	function NotificationFunctions:Resize(X: number)
 		local targ = X or 250
 		notification.Size = UDim2.fromOffset(targ, 0)
 	end
@@ -2854,7 +2854,7 @@ function WindowFunctions:Notify(Settings <table: Title <string>, Description <st
 	return NotificationFunctions
 end
 
-function WindowFunctions:Dialog(Settings <table: Title <string>, Description <string>, Buttons <...table: Name <string>, Callback <function(): void>>>)
+function WindowFunctions:Dialog(Settings: { Title: string, Description: string, Buttons: { { Name: string, Callback: () -> () } } })
 	local DialogFunctions = {}
 
 	local dialogCanvas = Instance.new("CanvasGroup")
@@ -3121,10 +3121,10 @@ function WindowFunctions:Dialog(Settings <table: Title <string>, Description <st
 		end)
 	end
 
-	function DialogFunctions:UpdateTitle(New <string>)
+	function DialogFunctions:UpdateTitle(New: string)
 		paragraphHeader.Text = New
 	end
-	function DialogFunctions:UpdateDescription(New <string>)
+	function DialogFunctions:UpdateDescription(New: string)
 		paragraphBody.Text = New
 	end
 
@@ -3135,7 +3135,7 @@ function WindowFunctions:Dialog(Settings <table: Title <string>, Description <st
 	return DialogFunctions
 end
 
-function WindowFunctions:SetNotificationsState(State <boolean>)
+function WindowFunctions:SetNotificationsState(State: boolean)
 	notifications.Visible = State
 end
 
@@ -3143,7 +3143,7 @@ function WindowFunctions:GetNotificationsState()
 	return notifications.Visible
 end
 
-function WindowFunctions:SetState(State <boolean>)
+function WindowFunctions:SetState(State: boolean)
 	windowState = State
 	base.Visible = State
 end
@@ -3162,7 +3162,7 @@ function WindowFunctions:Unload()
 	unloaded = true
 end
 
-function WindowFunctions.onUnloaded(callback <function(): void>)
+function WindowFunctions.onUnloaded(callback: () -> ())
 	onUnloadCallback = callback
 end
 
@@ -3204,11 +3204,11 @@ exit.MouseButton1Click:Connect(function()
 	})
 end)
 
-function WindowFunctions:SetKeybind(Keycode <Enum.KeyCode>)
+function WindowFunctions:SetKeybind(Keycode: Enum.KeyCode)
 	MenuKeybind = Keycode
 end
 
-function WindowFunctions:SetAcrylicBlurState(State <boolean>)
+function WindowFunctions:SetAcrylicBlurState(State: boolean)
 	acrylicBlur = State
 	base.BackgroundTransparency = State and 0.75 or 0
 end
@@ -3217,7 +3217,7 @@ function WindowFunctions:GetAcrylicBlurState()
 	return acrylicBlur
 end
 
-local function _SetUserInfoState(State <boolean>)
+local function _SetUserInfoState(State: boolean)
 	if State then
 		headshot.Image = (isReady and headshotImage) or "rbxassetid://0"
 		username.Text = "@" .. LocalPlayer.Name
@@ -3240,21 +3240,21 @@ end
 
 _SetUserInfoState(showUserInfo)
 
-function WindowFunctions:SetUserInfoState(State <boolean>)
+function WindowFunctions:SetUserInfoState(State: boolean)
 	_SetUserInfoState(State)
 end
 function WindowFunctions:GetUserInfoState()
 	return showUserInfo
 end
 
-function WindowFunctions:SetSize(Size <UDim2>)
+function WindowFunctions:SetSize(Size: UDim2)
 	base.Size = Size
 end
 function WindowFunctions:GetSize()
 	return base.Size
 end
 
-function WindowFunctions:SetScale(Scale <number>)
+function WindowFunctions:SetScale(Scale: number)
 	baseUIScale.Scale = Scale
 end
 function WindowFunctions:GetScale()
@@ -3400,14 +3400,14 @@ function NarcoEx:LoadAutoLoadConfig()
 	end
 end
 
-function NarcoEx:SetFolder(Folder <string>)
+function NarcoEx:SetFolder(Folder: string)
 	if isStudio then return "Config system unavailable." end
 
 	NarcoEx.Folder = Folder;
 	BuildFolderTree()
 end
 
-function NarcoEx:SaveConfig(Path <string>)
+function NarcoEx:SaveConfig(Path: string)
 	if isStudio or not writefile then return "Config system unavailable." end
 
 	if (not Path) then
@@ -3436,7 +3436,7 @@ function NarcoEx:SaveConfig(Path <string>)
 	return true
 end
 
-function NarcoEx:LoadConfig(Path <string>)
+function NarcoEx:LoadConfig(Path: string)
 	if isStudio or not (isfile and readfile) then return "Config system unavailable." end
 
 	if (not Path) then
