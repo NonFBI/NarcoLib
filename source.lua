@@ -1,274 +1,689 @@
--- UILibrary.lua
--- Refactored version of your NarcoEx UI with functional tabs, sliders, toggles, dropdowns
--- by ChatGPT, based on original UI from hold4564
+-- NarcoEx UI Library
+local NarcoEx = {}
+NarcoEx.__index = NarcoEx
 
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
+-- Colors
+NarcoEx.Colors = {
+    Background = Color3.fromRGB(12, 12, 12),
+    Primary = Color3.fromRGB(79, 0, 255),
+    Secondary = Color3.fromRGB(131, 255, 220),
+    Text = Color3.fromRGB(255, 255, 255),
+    Divider = Color3.fromRGB(208, 208, 208)
+}
 
-local Library = {}
-Library.__index = Library
-
--- Utility Functions
-local function Tween(obj, time, props)
-	return TweenService:Create(obj, TweenInfo.new(time, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), props):Play()
+-- Utility functions
+local function createInstance(className, properties)
+    local instance = Instance.new(className)
+    for property, value in pairs(properties) do
+        instance[property] = value
+    end
+    return instance
 end
 
-local function MakeDraggable(frame, dragHandle)
-	local dragging, dragInput, startPos, startInputPos
-	dragHandle.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			dragging = true
-			startInputPos = input.Position
-			startPos = frame.Position
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false
-				end
-			end)
-		end
-	end)
-	dragHandle.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement then
-			dragInput = input
-		end
-	end)
-	UserInputService.InputChanged:Connect(function(input)
-		if dragging and input == dragInput then
-			local delta = input.Position - startInputPos
-			frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-		end
-	end)
+-- Main Window
+function NarcoEx.new(title)
+    local self = setmetatable({}, NarcoEx)
+    
+    -- Create main GUI
+    self.ScreenGui = createInstance("ScreenGui", {
+        Name = "NarcoEx",
+        Parent = game:GetService("CoreGui"),
+        ResetOnSpawn = false
+    })
+    
+    -- Main container
+    self.Main = createInstance("Frame", {
+        Name = "Main",
+        Parent = self.ScreenGui,
+        Position = UDim2.new(0.293, 0, 0.28, 0),
+        Size = UDim2.new(0, 767, 0, 480),
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+        BorderSizePixel = 0
+    })
+    
+    createInstance("UICorner", {
+        CornerRadius = UDim.new(0, 6),
+        Parent = self.Main
+    })
+    
+    -- Top bar
+    self.Topbar = createInstance("Frame", {
+        Name = "Topbar",
+        Parent = self.ScreenGui,
+        Position = UDim2.new(0.293, 0, 0.279, 0),
+        Size = UDim2.new(0, 766, 0, 55),
+        BackgroundColor3 = Color3.fromRGB(9, 9, 9),
+        BorderSizePixel = 0
+    })
+    
+    createInstance("UICorner", {
+        CornerRadius = UDim.new(0, 6),
+        Parent = self.Topbar
+    })
+    
+    -- Title
+    self.Title = createInstance("TextLabel", {
+        Name = "Title",
+        Parent = self.ScreenGui,
+        Position = UDim2.new(0.366, 0, 0.284, 0),
+        Size = UDim2.new(0, 66, 0, 50),
+        BackgroundTransparency = 1,
+        Font = Enum.Font.SourceSans,
+        Text = title or "NarcoEx",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 20
+    })
+    
+    -- Icon
+    self.Icon = createInstance("ImageLabel", {
+        Name = "Icon",
+        Parent = self.ScreenGui,
+        Position = UDim2.new(0.304, 0, 0.308, 0),
+        Size = UDim2.new(0, 33, 0, 33),
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://119400389511179"
+    })
+    
+    -- Close button
+    self.CloseButton = createInstance("ImageButton", {
+        Name = "CloseButton",
+        Parent = self.Topbar,
+        Position = UDim2.new(0.95, 0, 0.29, 0),
+        Size = UDim2.new(0, 22, 0, 22),
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://10734895530"
+    })
+    
+    self.CloseButton.MouseButton1Click:Connect(function()
+        self.ScreenGui:Destroy()
+    end)
+    
+    -- Content area
+    self.Content = createInstance("Frame", {
+        Name = "Content",
+        Parent = self.Main,
+        Position = UDim2.new(0.222, 0, 0.133, 0),
+        Size = UDim2.new(0, 595, 0, 415),
+        BackgroundTransparency = 1
+    })
+    
+    -- Tab system
+    self.TabPlaceholder = createInstance("Frame", {
+        Name = "TabPlaceholder",
+        Parent = self.ScreenGui,
+        Position = UDim2.new(0.293, 0, 0.427, 0),
+        Size = UDim2.new(0, 161, 0, 428),
+        BackgroundColor3 = Color3.fromRGB(6, 6, 6),
+        BorderSizePixel = 0
+    })
+    
+    createInstance("UICorner", {
+        CornerRadius = UDim.new(0, 6),
+        Parent = self.TabPlaceholder
+    })
+    
+    createInstance("UIPadding", {
+        Name = "UIPadding",
+        Parent = self.TabPlaceholder,
+        PaddingTop = UDim.new(0, 10),
+        PaddingLeft = UDim.new(0, 5)
+    })
+    
+    self.TabListLayout = createInstance("UIListLayout", {
+        Name = "UIListLayout",
+        Parent = self.TabPlaceholder,
+        Padding = UDim.new(0, 8),
+        SortOrder = Enum.SortOrder.LayoutOrder
+    })
+    
+    -- Divider for tabs
+    self.TabDivider = createInstance("TextLabel", {
+        Name = "Divider",
+        Parent = self.TabPlaceholder,
+        Size = UDim2.new(0, 152, 0, 22),
+        BackgroundTransparency = 1,
+        Font = Enum.Font.SourceSans,
+        Text = "Main Tabs",
+        TextColor3 = NarcoEx.Colors.Divider,
+        TextSize = 18,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+    
+    self.Tabs = {}
+    self.CurrentTab = nil
+    
+    return self
 end
 
--- Create Main UI
-function Library.new(title)
-	local self = setmetatable({}, Library)
-	
-	self.ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-	self.ScreenGui.Name = "NarcoExUI"
-	
-	self.Main = Instance.new("Frame", self.ScreenGui)
-	self.Main.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	self.Main.Size = UDim2.new(0, 766, 0, 480)
-	self.Main.Position = UDim2.new(0.3, 0, 0.28, 0)
-	Instance.new("UICorner", self.Main)
-	
-	-- Topbar
-	self.Topbar = Instance.new("Frame", self.ScreenGui)
-	self.Topbar.BackgroundColor3 = Color3.fromRGB(9, 9, 9)
-	self.Topbar.Size = UDim2.new(0, 766, 0, 55)
-	self.Topbar.Position = UDim2.new(0.3, 0, 0.279, 0)
-	Instance.new("UICorner", self.Topbar)
-	MakeDraggable(self.Main, self.Topbar)
-
-	local titleLabel = Instance.new("TextLabel", self.Topbar)
-	titleLabel.BackgroundTransparency = 1
-	titleLabel.Size = UDim2.new(0, 200, 1, 0)
-	titleLabel.Font = Enum.Font.SourceSans
-	titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-	titleLabel.TextSize = 20
-	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-	titleLabel.Text = title
-	titleLabel.Position = UDim2.new(0.05, 0, 0, 0)
-
-	-- Tab list
-	self.TabHolder = Instance.new("Frame", self.ScreenGui)
-	self.TabHolder.BackgroundColor3 = Color3.fromRGB(6, 6, 6)
-	self.TabHolder.Size = UDim2.new(0, 161, 0, 428)
-	self.TabHolder.Position = UDim2.new(0.2938, 0, 0.4275, 0)
-	Instance.new("UICorner", self.TabHolder)
-
-	local tabLayout = Instance.new("UIListLayout", self.TabHolder)
-	tabLayout.Padding = UDim.new(0, 8)
-
-	self.ContentHolder = Instance.new("Frame", self.Main)
-	self.ContentHolder.BackgroundTransparency = 1
-	self.ContentHolder.Size = UDim2.new(0.78, 0, 0.87, 0)
-	self.ContentHolder.Position = UDim2.new(0.22, 0, 0.13, 0)
-
-	self.Tabs = {}
-	
-	return self
+-- Tab functions
+function NarcoEx:AddTab(name)
+    local tab = {
+        Name = name,
+        Content = createInstance("Frame", {
+            Name = name .. "Content",
+            Parent = self.Content,
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            Visible = false
+        }),
+        Button = createInstance("TextButton", {
+            Name = name .. "Button",
+            Parent = self.TabPlaceholder,
+            Size = UDim2.new(0, 152, 0, 34),
+            BackgroundTransparency = 1,
+            Font = Enum.Font.SourceSans,
+            Text = name,
+            TextColor3 = NarcoEx.Colors.Text,
+            TextSize = 22
+        })
+    }
+    
+    createInstance("UICorner", {
+        CornerRadius = UDim.new(0, 6),
+        Parent = tab.Button
+    })
+    
+    tab.Button.MouseButton1Click:Connect(function()
+        self:SwitchTab(tab)
+    end)
+    
+    table.insert(self.Tabs, tab)
+    
+    if #self.Tabs == 1 then
+        self:SwitchTab(tab)
+    end
+    
+    return tab
 end
 
--- Add Tab
-function Library:AddTab(tabName)
-	local tabButton = Instance.new("TextButton", self.TabHolder)
-	tabButton.Size = UDim2.new(0, 152, 0, 34)
-	tabButton.BackgroundTransparency = 0.98
-	tabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-	tabButton.Font = Enum.Font.RobotoMono
-	tabButton.TextSize = 20
-	tabButton.Text = tabName
-	Instance.new("UICorner", tabButton)
-	
-	local tabFrame = Instance.new("Frame", self.ContentHolder)
-	tabFrame.Size = UDim2.new(1, 0, 1, 0)
-	tabFrame.BackgroundTransparency = 1
-	tabFrame.Visible = false
-	
-	local layout = Instance.new("UIListLayout", tabFrame)
-	layout.FillDirection = Enum.FillDirection.Horizontal
-	layout.Padding = UDim.new(0.01, 0)
-	
-	self.Tabs[tabName] = {Frame = tabFrame, Groups = {}}
-	
-	tabButton.MouseButton1Click:Connect(function()
-		for name, tab in pairs(self.Tabs) do
-			tab.Frame.Visible = (name == tabName)
-		end
-	end)
-	
-	if #self.Tabs == 1 then
-		tabFrame.Visible = true
-	end
-	
-	return self.Tabs[tabName]
+function NarcoEx:SwitchTab(tab)
+    if self.CurrentTab then
+        self.CurrentTab.Content.Visible = false
+        self.CurrentTab.Button.BackgroundTransparency = 1
+        self.CurrentTab.Button.TextColor3 = NarcoEx.Colors.Text
+    end
+    
+    self.CurrentTab = tab
+    tab.Content.Visible = true
+    tab.Button.BackgroundTransparency = 0.75
+    tab.Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    
+    local gradient = createInstance("UIGradient", {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(238, 0, 255)),
+            ColorSequenceKeypoint.new(0.54, NarcoEx.Colors.Primary),
+            ColorSequenceKeypoint.new(1, NarcoEx.Colors.Secondary)
+        }),
+        Parent = tab.Button
+    })
 end
 
--- Add Group Box
-function Library:AddGroupBox(tab, name)
-	local groupFrame = Instance.new("Frame", tab.Frame)
-	groupFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
-	groupFrame.Size = UDim2.new(0.5, -5, 1, 0)
-	Instance.new("UICorner", groupFrame)
-	
-	local title = Instance.new("TextLabel", groupFrame)
-	title.BackgroundTransparency = 1
-	title.Size = UDim2.new(1, 0, 0, 30)
-	title.Font = Enum.Font.RobotoMono
-	title.TextColor3 = Color3.fromRGB(255, 255, 255)
-	title.TextSize = 20
-	title.Text = name
-	
-	local contentLayout = Instance.new("UIListLayout", groupFrame)
-	contentLayout.Padding = UDim.new(0, 8)
-	contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	
-	table.insert(tab.Groups, groupFrame)
-	return groupFrame
+-- Groupbox functions
+function NarcoEx.Tab:AddGroupbox(name, column)
+    column = column or 1
+    local groupbox = {
+        Name = name,
+        Frame = createInstance("Frame", {
+            Name = name .. "Groupbox",
+            Parent = self.Content,
+            Size = UDim2.new(0.45, 0, 0, 0),
+            BackgroundColor3 = NarcoEx.Colors.Background,
+            BorderSizePixel = 0
+        })
+    }
+    
+    createInstance("UICorner", {
+        CornerRadius = UDim.new(0, 6),
+        Parent = groupbox.Frame
+    })
+    
+    -- Position based on column
+    if column == 1 then
+        groupbox.Frame.Position = UDim2.new(0, 0, 0, 0)
+    else
+        groupbox.Frame.Position = UDim2.new(0.5, 10, 0, 0)
+    end
+    
+    -- Title
+    groupbox.Title = createInstance("TextLabel", {
+        Name = "Title",
+        Parent = groupbox.Frame,
+        Position = UDim2.new(0, 10, 0, 10),
+        Size = UDim2.new(1, -20, 0, 20),
+        BackgroundTransparency = 1,
+        Font = Enum.Font.SourceSansBold,
+        Text = name,
+        TextColor3 = NarcoEx.Colors.Text,
+        TextSize = 18,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+    
+    -- Content container
+    groupbox.Content = createInstance("Frame", {
+        Name = "Content",
+        Parent = groupbox.Frame,
+        Position = UDim2.new(0, 10, 0, 35),
+        Size = UDim2.new(1, -20, 1, -45),
+        BackgroundTransparency = 1
+    })
+    
+    groupbox.ListLayout = createInstance("UIListLayout", {
+        Parent = groupbox.Content,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 8)
+    })
+    
+    groupbox.ListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        groupbox.Frame.Size = UDim2.new(groupbox.Frame.Size.X.Scale, groupbox.Frame.Size.X.Offset, 0, groupbox.ListLayout.AbsoluteContentSize.Y + 45)
+    end)
+    
+    return groupbox
 end
 
--- Add Slider
-function Library:AddSlider(group, name, min, max, default, callback)
-	local sliderFrame = Instance.new("Frame", group)
-	sliderFrame.BackgroundTransparency = 1
-	sliderFrame.Size = UDim2.new(1, 0, 0, 40)
-	
-	local label = Instance.new("TextLabel", sliderFrame)
-	label.BackgroundTransparency = 1
-	label.Size = UDim2.new(1, 0, 0, 20)
-	label.Text = name
-	label.TextColor3 = Color3.fromRGB(255, 255, 255)
-	label.Font = Enum.Font.RobotoMono
-	label.TextSize = 16
-	
-	local bar = Instance.new("Frame", sliderFrame)
-	bar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-	bar.Size = UDim2.new(1, 0, 0, 8)
-	bar.Position = UDim2.new(0, 0, 0.6, 0)
-	Instance.new("UICorner", bar)
-	
-	local fill = Instance.new("Frame", bar)
-	fill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-	fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
-	Instance.new("UICorner", fill)
-	
-	local dragging = false
-	bar.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			dragging = true
-		end
-	end)
-	UserInputService.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			dragging = false
-		end
-	end)
-	UserInputService.InputChanged:Connect(function(input)
-		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-			local relPos = math.clamp((input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
-			Tween(fill, 0.1, {Size = UDim2.new(relPos, 0, 1, 0)})
-			local value = math.floor(min + (max - min) * relPos)
-			callback(value)
-		end
-	end)
+-- UI Components
+function NarcoEx.Groupbox:AddLabel(text)
+    local label = createInstance("TextLabel", {
+        Name = "Label",
+        Parent = self.Content,
+        Size = UDim2.new(1, 0, 0, 20),
+        BackgroundTransparency = 1,
+        Font = Enum.Font.SourceSans,
+        Text = text,
+        TextColor3 = NarcoEx.Colors.Text,
+        TextSize = 16,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+    
+    return label
 end
 
--- Add Toggle
-function Library:AddToggle(group, name, default, callback)
-	local toggleFrame = Instance.new("Frame", group)
-	toggleFrame.BackgroundTransparency = 1
-	toggleFrame.Size = UDim2.new(1, 0, 0, 30)
-	
-	local button = Instance.new("TextButton", toggleFrame)
-	button.BackgroundColor3 = default and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(50, 50, 50)
-	button.Size = UDim2.new(0, 40, 0, 20)
-	Instance.new("UICorner", button)
-	
-	local state = default
-	button.MouseButton1Click:Connect(function()
-		state = not state
-		Tween(button, 0.2, {BackgroundColor3 = state and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(50, 50, 50)})
-		callback(state)
-	end)
-	
-	local label = Instance.new("TextLabel", toggleFrame)
-	label.BackgroundTransparency = 1
-	label.Position = UDim2.new(0, 50, 0, 0)
-	label.Size = UDim2.new(1, -50, 1, 0)
-	label.Font = Enum.Font.RobotoMono
-	label.TextColor3 = Color3.fromRGB(255, 255, 255)
-	label.TextSize = 16
-	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.Text = name
+function NarcoEx.Groupbox:AddDivider(text)
+    local divider = createInstance("Frame", {
+        Name = "Divider",
+        Parent = self.Content,
+        Size = UDim2.new(1, 0, 0, 1),
+        BackgroundColor3 = NarcoEx.Colors.Divider,
+        BorderSizePixel = 0
+    })
+    
+    if text then
+        divider.Size = UDim2.new(1, 0, 0, 20)
+        divider.BackgroundTransparency = 1
+        
+        createInstance("TextLabel", {
+            Parent = divider,
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            Font = Enum.Font.SourceSans,
+            Text = text,
+            TextColor3 = NarcoEx.Colors.Divider,
+            TextSize = 16,
+            TextXAlignment = Enum.TextXAlignment.Left
+        })
+    end
+    
+    return divider
 end
 
--- Add Dropdown
-function Library:AddDropdown(group, name, options, default, callback)
-	local dropdownFrame = Instance.new("Frame", group)
-	dropdownFrame.BackgroundTransparency = 1
-	dropdownFrame.Size = UDim2.new(1, 0, 0, 30)
-	
-	local button = Instance.new("TextButton", dropdownFrame)
-	button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-	button.Size = UDim2.new(1, 0, 1, 0)
-	button.TextColor3 = Color3.fromRGB(255, 255, 255)
-	button.Font = Enum.Font.RobotoMono
-	button.TextSize = 16
-	button.Text = name .. ": " .. default
-	Instance.new("UICorner", button)
-	
-	local open = false
-	local optionContainer
-	
-	button.MouseButton1Click:Connect(function()
-		if not open then
-			open = true
-			optionContainer = Instance.new("Frame", group)
-			optionContainer.BackgroundTransparency = 1
-			optionContainer.Size = UDim2.new(1, 0, 0, #options * 25)
-			
-			for _, option in ipairs(options) do
-				local optBtn = Instance.new("TextButton", optionContainer)
-				optBtn.Size = UDim2.new(1, 0, 0, 25)
-				optBtn.BackgroundTransparency = 1
-				optBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-				optBtn.Font = Enum.Font.RobotoMono
-				optBtn.TextSize = 14
-				optBtn.Text = option
-				optBtn.MouseButton1Click:Connect(function()
-					button.Text = name .. ": " .. option
-					callback(option)
-					optionContainer:Destroy()
-					open = false
-				end)
-			end
-		else
-			if optionContainer then optionContainer:Destroy() end
-			open = false
-		end
-	end)
+function NarcoEx.Groupbox:AddButton(text, callback)
+    local button = createInstance("TextButton", {
+        Name = "Button",
+        Parent = self.Content,
+        Size = UDim2.new(1, 0, 0, 30),
+        BackgroundColor3 = NarcoEx.Colors.Primary,
+        Font = Enum.Font.SourceSans,
+        Text = text,
+        TextColor3 = NarcoEx.Colors.Text,
+        TextSize = 18
+    })
+    
+    createInstance("UICorner", {
+        CornerRadius = UDim.new(0, 4),
+        Parent = button
+    })
+    
+    button.MouseButton1Click:Connect(function()
+        callback()
+    end)
+    
+    return button
 end
 
-return Library
+function NarcoEx.Groupbox:AddToggle(text, default, callback)
+    local toggle = {
+        Value = default or false,
+        Callback = callback
+    }
+    
+    local frame = createInstance("Frame", {
+        Name = "Toggle",
+        Parent = self.Content,
+        Size = UDim2.new(1, 0, 0, 30),
+        BackgroundTransparency = 1
+    })
+    
+    local label = createInstance("TextLabel", {
+        Name = "Label",
+        Parent = frame,
+        Position = UDim2.new(0, 0, 0, 0),
+        Size = UDim2.new(0.7, 0, 1, 0),
+        BackgroundTransparency = 1,
+        Font = Enum.Font.SourceSans,
+        Text = text,
+        TextColor3 = NarcoEx.Colors.Text,
+        TextSize = 16,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+    
+    local toggleButton = createInstance("TextButton", {
+        Name = "ToggleButton",
+        Parent = frame,
+        Position = UDim2.new(0.7, 0, 0, 0),
+        Size = UDim2.new(0.3, 0, 1, 0),
+        BackgroundColor3 = toggle.Value and NarcoEx.Colors.Primary or Color3.fromRGB(50, 50, 50),
+        Font = Enum.Font.SourceSans,
+        Text = toggle.Value and "ON" or "OFF",
+        TextColor3 = NarcoEx.Colors.Text,
+        TextSize = 16
+    })
+    
+    createInstance("UICorner", {
+        CornerRadius = UDim.new(0, 4),
+        Parent = toggleButton
+    })
+    
+    toggleButton.MouseButton1Click:Connect(function()
+        toggle.Value = not toggle.Value
+        toggleButton.BackgroundColor3 = toggle.Value and NarcoEx.Colors.Primary or Color3.fromRGB(50, 50, 50)
+        toggleButton.Text = toggle.Value and "ON" or "OFF"
+        if toggle.Callback then
+            toggle.Callback(toggle.Value)
+        end
+    end)
+    
+    toggle.Set = function(self, value)
+        toggle.Value = value
+        toggleButton.BackgroundColor3 = toggle.Value and NarcoEx.Colors.Primary or Color3.fromRGB(50, 50, 50)
+        toggleButton.Text = toggle.Value and "ON" or "OFF"
+        if toggle.Callback then
+            toggle.Callback(toggle.Value)
+        end
+    end
+    
+    toggle.Get = function(self)
+        return toggle.Value
+    end
+    
+    return toggle
+end
+
+function NarcoEx.Groupbox:AddSlider(text, min, max, default, callback)
+    local slider = {
+        Value = default or min,
+        Min = min,
+        Max = max,
+        Callback = callback
+    }
+    
+    local frame = createInstance("Frame", {
+        Name = "Slider",
+        Parent = self.Content,
+        Size = UDim2.new(1, 0, 0, 50),
+        BackgroundTransparency = 1
+    })
+    
+    local label = createInstance("TextLabel", {
+        Name = "Label",
+        Parent = frame,
+        Position = UDim2.new(0, 0, 0, 0),
+        Size = UDim2.new(1, 0, 0, 20),
+        BackgroundTransparency = 1,
+        Font = Enum.Font.SourceSans,
+        Text = text,
+        TextColor3 = NarcoEx.Colors.Text,
+        TextSize = 16,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+    
+    local valueLabel = createInstance("TextLabel", {
+        Name = "ValueLabel",
+        Parent = frame,
+        Position = UDim2.new(0, 0, 0, 20),
+        Size = UDim2.new(1, 0, 0, 15),
+        BackgroundTransparency = 1,
+        Font = Enum.Font.SourceSans,
+        Text = tostring(slider.Value),
+        TextColor3 = NarcoEx.Colors.Text,
+        TextSize = 14,
+        TextXAlignment = Enum.TextXAlignment.Right
+    })
+    
+    local track = createInstance("Frame", {
+        Name = "Track",
+        Parent = frame,
+        Position = UDim2.new(0, 0, 0, 40),
+        Size = UDim2.new(1, 0, 0, 5),
+        BackgroundColor3 = Color3.fromRGB(50, 50, 50),
+        BorderSizePixel = 0
+    })
+    
+    createInstance("UICorner", {
+        CornerRadius = UDim.new(1, 0),
+        Parent = track
+    })
+    
+    local fill = createInstance("Frame", {
+        Name = "Fill",
+        Parent = track,
+        Size = UDim2.new((slider.Value - slider.Min) / (slider.Max - slider.Min), 0, 1, 0),
+        BackgroundColor3 = NarcoEx.Colors.Primary,
+        BorderSizePixel = 0
+    })
+    
+    createInstance("UICorner", {
+        CornerRadius = UDim.new(1, 0),
+        Parent = fill
+    })
+    
+    local thumb = createInstance("TextButton", {
+        Name = "Thumb",
+        Parent = track,
+        Position = UDim2.new((slider.Value - slider.Min) / (slider.Max - slider.Min), -5, 0, -5),
+        Size = UDim2.new(0, 15, 0, 15),
+        BackgroundColor3 = NarcoEx.Colors.Text,
+        Text = "",
+        AutoButtonColor = false
+    })
+    
+    createInstance("UICorner", {
+        CornerRadius = UDim.new(1, 0),
+        Parent = thumb
+    })
+    
+    local dragging = false
+    
+    local function updateSlider(input)
+        local relativeX = (input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X
+        relativeX = math.clamp(relativeX, 0, 1)
+        
+        slider.Value = math.floor(slider.Min + relativeX * (slider.Max - slider.Min))
+        valueLabel.Text = tostring(slider.Value)
+        fill.Size = UDim2.new(relativeX, 0, 1, 0)
+        thumb.Position = UDim2.new(relativeX, -7, 0, -5)
+        
+        if slider.Callback then
+            slider.Callback(slider.Value)
+        end
+    end
+    
+    thumb.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+        end
+    end)
+    
+    thumb.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            updateSlider(input)
+        end
+    end)
+    
+    track.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            updateSlider(input)
+        end
+    end)
+    
+    slider.Set = function(self, value)
+        value = math.clamp(value, slider.Min, slider.Max)
+        slider.Value = value
+        valueLabel.Text = tostring(slider.Value)
+        local relativeX = (value - slider.Min) / (slider.Max - slider.Min)
+        fill.Size = UDim2.new(relativeX, 0, 1, 0)
+        thumb.Position = UDim2.new(relativeX, -7, 0, -5)
+        if slider.Callback then
+            slider.Callback(slider.Value)
+        end
+    end
+    
+    slider.Get = function(self)
+        return slider.Value
+    end
+    
+    return slider
+end
+
+function NarcoEx.Groupbox:AddDropdown(text, options, default, callback)
+    local dropdown = {
+        Value = default or options[1],
+        Options = options,
+        Callback = callback,
+        Open = false
+    }
+    
+    local frame = createInstance("Frame", {
+        Name = "Dropdown",
+        Parent = self.Content,
+        Size = UDim2.new(1, 0, 0, 30),
+        BackgroundTransparency = 1
+    })
+    
+    local label = createInstance("TextLabel", {
+        Name = "Label",
+        Parent = frame,
+        Position = UDim2.new(0, 0, 0, 0),
+        Size = UDim2.new(0.7, 0, 1, 0),
+        BackgroundTransparency = 1,
+        Font = Enum.Font.SourceSans,
+        Text = text,
+        TextColor3 = NarcoEx.Colors.Text,
+        TextSize = 16,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+    
+    local mainButton = createInstance("TextButton", {
+        Name = "MainButton",
+        Parent = frame,
+        Position = UDim2.new(0.7, 0, 0, 0),
+        Size = UDim2.new(0.3, 0, 1, 0),
+        BackgroundColor3 = NarcoEx.Colors.Primary,
+        Font = Enum.Font.SourceSans,
+        Text = dropdown.Value,
+        TextColor3 = NarcoEx.Colors.Text,
+        TextSize = 16
+    })
+    
+    createInstance("UICorner", {
+        CornerRadius = UDim.new(0, 4),
+        Parent = mainButton
+    })
+    
+    local optionsFrame = createInstance("Frame", {
+        Name = "OptionsFrame",
+        Parent = frame,
+        Position = UDim2.new(0.7, 0, 1, 5),
+        Size = UDim2.new(0.3, 0, 0, 0),
+        BackgroundColor3 = NarcoEx.Colors.Background,
+        BorderSizePixel = 0,
+        ClipsDescendants = true,
+        Visible = false
+    })
+    
+    createInstance("UICorner", {
+        CornerRadius = UDim.new(0, 4),
+        Parent = optionsFrame
+    })
+    
+    local optionsList = createInstance("UIListLayout", {
+        Parent = optionsFrame,
+        SortOrder = Enum.SortOrder.LayoutOrder
+    })
+    
+    local function updateOptions()
+        for _, option in ipairs(dropdown.Options) do
+            local optionButton = createInstance("TextButton", {
+                Name = option .. "Option",
+                Parent = optionsFrame,
+                Size = UDim2.new(1, 0, 0, 30),
+                BackgroundColor3 = NarcoEx.Colors.Background,
+                BorderSizePixel = 0,
+                Font = Enum.Font.SourceSans,
+                Text = option,
+                TextColor3 = NarcoEx.Colors.Text,
+                TextSize = 16
+            })
+            
+            optionButton.MouseButton1Click:Connect(function()
+                dropdown.Value = option
+                mainButton.Text = option
+                optionsFrame.Visible = false
+                dropdown.Open = false
+                if dropdown.Callback then
+                    dropdown.Callback(option)
+                end
+            end)
+        end
+    end
+    
+    updateOptions()
+    
+    mainButton.MouseButton1Click:Connect(function()
+        dropdown.Open = not dropdown.Open
+        optionsFrame.Visible = dropdown.Open
+        optionsFrame.Size = UDim2.new(0.3, 0, 0, math.min(#dropdown.Options * 30, 150))
+    end)
+    
+    dropdown.Set = function(self, value)
+        if table.find(dropdown.Options, value) then
+            dropdown.Value = value
+            mainButton.Text = value
+            if dropdown.Callback then
+                dropdown.Callback(value)
+            end
+        end
+    end
+    
+    dropdown.Get = function(self)
+        return dropdown.Value
+    end
+    
+    dropdown.UpdateOptions = function(self, newOptions)
+        dropdown.Options = newOptions
+        for _, child in ipairs(optionsFrame:GetChildren()) do
+            if child:IsA("TextButton") then
+                child:Destroy()
+            end
+        end
+        updateOptions()
+    end
+    
+    return dropdown
+end
+
+return NarcoEx
