@@ -178,6 +178,8 @@ function NarcoEx:AddTab(name)
         })
     }
     
+       setmetatable(tab, { __index = NarcoEx.Tab })
+    
     createInstance("UICorner", {
         CornerRadius = UDim.new(0, 6),
         Parent = tab.Button
@@ -195,6 +197,10 @@ function NarcoEx:AddTab(name)
     
     return tab
 end
+
+-- Define the Tab metatable methods
+NarcoEx.Tab = {}
+NarcoEx.Tab.__index = NarcoEx.Tab
 
 function NarcoEx:SwitchTab(tab)
     if self.CurrentTab then
